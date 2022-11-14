@@ -17,3 +17,7 @@ function follow_path_step(path, drone, velocity, posAlongPath, previousSimulatio
     sim.setObjectQuaternion(drone,path,quat)
     return posAlongPath, t
 end
+
+local f = assert(io.open("droneScript.lua", "rb"))
+droneScript = f:read("*all")
+f:close()
