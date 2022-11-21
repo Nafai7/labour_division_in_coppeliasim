@@ -26,6 +26,22 @@ function loadObjects()
     end
 end
 
+function changePath(droneNumber, pathNumber)
+    sim.callScriptFunction("setPath", droneScripts[droneNumber - 1], paths[pathNumber - 1])
+end
+
+function checkDetection(detectingDroneNumber)
+    local detected = {}
+    for i = 0,(config.numberOfDrones - 1) do
+        if i ~= detectingDroneNumber then
+            if sim.checkProximitySensor(sim.getObject("/Quadcopter["..tostring(detectingDroneNumber).."]/Proximity_sensor"), drones[i]) == 1 then
+                detected[i] = i
+            end
+        end
+    end
+    return detected
+end
+
 function sysCall_init()
     local allGood = true
 
@@ -36,11 +52,18 @@ end
 
 function sysCall_actuation()
     if firstStep then
-        sim.callScriptFunction("setPath", droneScripts[0], paths[1])
+        sim.callScriptFunction("setPath", droneScripts[0], paths[0])
+        sim.callScriptFunction("setPath", droneScripts[1], paths[1])
         firstStep = false
     end
+
+    -- sim.addLog(sim.verbosity_default, tostring(sim.callScriptFunction("didFullPath", droneScripts[0])))
+
+    local detected = checkDetection(0)
+
+    sim.addLog(sim.verbosity_default, tostring(table.concat(detected,", ")))
 end
 
 function sysCall_afterSimulation()
-    firstStep = false
+    firstStep = true
 end
