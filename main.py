@@ -40,10 +40,20 @@ def main():
     client.setStepping(True)
     config = getConfig()
 
-    # sim.startSimulation()
-    # while (t := sim.getSimulationTime()) < 3:
-    #     client.step()
-    # sim.stopSimulation()
+    sim.startSimulation()
+    client.step()
+    changePath(0,0)
+    changePath(1,1)
+    changePath(3,2)
+    changePath(5,3)
+    for i in range(0, 100):
+        client.step()
+    changePath(2,1)
+    changePath(4,2)
+    changePath(6,3)
+    while (t := sim.getSimulationTime()) < 30:
+        client.step()
+    sim.stopSimulation()
 
     del client
 

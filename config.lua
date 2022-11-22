@@ -1,6 +1,6 @@
 local config = {}
 
-config.numberOfDrones = 2
-config.numberOfPaths = 3
+config.numberOfDrones = 7
+config.numberOfPaths = 4
 
 return config

@@ -15,7 +15,7 @@ function follow_path_step(path, drone, velocity, posAlongPath, previousSimulatio
     local quat=sim.getPathInterpolatedConfig(pathQuaternions,pathLengths,posAlongPath,nil,{2,2,2,2})
     sim.setObjectPosition(drone,path,pos)
     sim.setObjectQuaternion(drone,path,quat)
-    return posAlongPath, t
+    return posAlongPath
 end
 
 local f = assert(io.open("droneScript.lua", "rb"))

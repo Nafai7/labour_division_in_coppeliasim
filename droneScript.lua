@@ -2,21 +2,26 @@ require("LabourDivisionUtilities")
 
 function sysCall_init()
     drone = sim.getObject('.')
-    path = sim.getObject("/Path[0]")
+    path = nil
     proximitySensor = sim.getObject(":/Proximity_sensor")
-    velocity = 0.2
+    velocity = 0.15
     posAlongPath = 0
     previousPosAlongPath = 0
     previousSimulationTime = 0
 end
 
 function sysCall_actuation()
-    previousPosAlongPath = posAlongPath
-    posAlongPath, previousSimulationTime = follow_path_step(path, drone, velocity, posAlongPath, previousSimulationTime, get_path_data_needed(path))
+    if path ~= nil then
+        previousPosAlongPath = posAlongPath
+        posAlongPath = follow_path_step(path, drone, velocity, posAlongPath, previousSimulationTime, get_path_data_needed(path))
+    end
+    previousSimulationTime = sim.getSimulationTime()
 end
 
 function setPath(newPath)
     path = newPath
+    posAlongPath = 0
+    previousPosAlongPath = 0
 end
 
 function didFullPath()
