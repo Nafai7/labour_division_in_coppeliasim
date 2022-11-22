@@ -1,14 +1,15 @@
 require("LabourDivisionUtilities")
 local config = require("config")
 local firstStep = true
+local drones = {}
+local droneScripts = {}
+local paths = {}
 
 function loadObjects()
-    drones = {}
     for i = 0, (config.numberOfDrones - 1) do
         drones[i] = sim.getObject("/Quadcopter["..tostring(i).."]")
     end
 
-    droneScripts = {}
     for i = 0,(config.numberOfDrones - 1) do
         local target = sim.getObject("/Quadcopter["..tostring(i).."]/target")
         local currentScript = sim.getScript(sim.scripttype_childscript, target)
@@ -20,14 +21,39 @@ function loadObjects()
         sim.associateScriptWithObject(droneScripts[i], target)
     end
 
-    paths = {}
     for i = 0,(config.numberOfPaths - 1) do
         paths[i] = sim.getObject("/Path["..tostring(i).."]")
     end
 end
 
+function sysCall_init()
+    local allGood = true
+
+    loadObjects()
+
+    sim.addLog(sim.verbosity_default, "LDA script loaded")
+end
+
+-- function sysCall_actuation()
+--     if firstStep then
+--         sim.callScriptFunction("setPath", droneScripts[0], paths[0])
+--         sim.callScriptFunction("setPath", droneScripts[1], paths[1])
+--         firstStep = false
+--     end
+
+--     sim.addLog(sim.verbosity_default, tostring(sim.callScriptFunction("didFullPath", droneScripts[0])))
+
+--     local detected = checkDetection(0)
+
+--     sim.addLog(sim.verbosity_default, tostring(table.concat(detected,", ")))
+-- end
+
+-- function sysCall_afterSimulation()
+--     firstStep = true
+-- end
+
 function changePath(droneNumber, pathNumber)
-    sim.callScriptFunction("setPath", droneScripts[droneNumber - 1], paths[pathNumber - 1])
+    sim.callScriptFunction("setPath", droneScripts[droneNumber], paths[pathNumber])
 end
 
 function checkDetection(detectingDroneNumber)
@@ -42,28 +68,14 @@ function checkDetection(detectingDroneNumber)
     return detected
 end
 
-function sysCall_init()
-    local allGood = true
-
-    loadObjects()
-
-    sim.addLog(sim.verbosity_default, "LDA script loaded")
+function checkIfDidFullPath(droneNumber)
+    return sim.callScriptFunction("didFullPath", droneScripts[droneNumber])
 end
 
-function sysCall_actuation()
-    if firstStep then
-        sim.callScriptFunction("setPath", droneScripts[0], paths[0])
-        sim.callScriptFunction("setPath", droneScripts[1], paths[1])
-        firstStep = false
-    end
-
-    -- sim.addLog(sim.verbosity_default, tostring(sim.callScriptFunction("didFullPath", droneScripts[0])))
-
-    local detected = checkDetection(0)
-
-    sim.addLog(sim.verbosity_default, tostring(table.concat(detected,", ")))
+function checkToScriptConnection()
+    return true
 end
 
-function sysCall_afterSimulation()
-    firstStep = true
+function getConfig()
+    return config
 end

@@ -26,15 +26,3 @@ function didFullPath()
         return false
     end
 end
-
-function checkDetection(drones, numberOfDrones, ignore)
-    local detected = {}
-    for i = 0,(numberOfDrones - 1) do
-        if i ~= ignore then
-            if sim.checkProximitySensor(proximitySensor, drones[i]) == 1 then
-                detected[i] = i
-            end
-        end
-    end
-    return detected
-end
