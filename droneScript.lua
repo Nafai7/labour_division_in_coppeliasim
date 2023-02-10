@@ -4,7 +4,7 @@ function sysCall_init()
     drone = sim.getObject('.')
     path = nil
     proximitySensor = sim.getObject(":/Proximity_sensor")
-    velocity = 0.15
+    velocity = 0.2
     posAlongPath = 0
     previousPosAlongPath = 0
     previousSimulationTime = 0

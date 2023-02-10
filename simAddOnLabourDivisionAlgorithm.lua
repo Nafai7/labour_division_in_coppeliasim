@@ -2,23 +2,24 @@ require("LabourDivisionUtilities")
 local config = require("config")
 local firstStep = true
 local drones = {}
+local targets = {}
 local droneScripts = {}
 local paths = {}
 
 function loadObjects()
     for i = 0, (config.numberOfDrones - 1) do
         drones[i] = sim.getObject("/Quadcopter["..tostring(i).."]")
+        targets[i] = sim.getObject("/Quadcopter["..tostring(i).."]/target")
     end
 
     for i = 0,(config.numberOfDrones - 1) do
-        local target = sim.getObject("/Quadcopter["..tostring(i).."]/target")
-        local currentScript = sim.getScript(sim.scripttype_childscript, target)
+        local currentScript = sim.getScript(sim.scripttype_childscript, targets[i])
         if currentScript ~= -1 then
             sim.removeScript(currentScript)
         end
         droneScripts[i] = sim.addScript(sim.scripttype_childscript)
         sim.setScriptText(droneScripts[i], droneScript)
-        sim.associateScriptWithObject(droneScripts[i], target)
+        sim.associateScriptWithObject(droneScripts[i], targets[i])
     end
 
     for i = 0,(config.numberOfPaths - 1) do
@@ -60,8 +61,8 @@ function checkDetection(detectingDroneNumber)
     local detected = {}
     for i = 0,(config.numberOfDrones - 1) do
         if i ~= detectingDroneNumber then
-            if sim.checkProximitySensor(sim.getObject("/Quadcopter["..tostring(detectingDroneNumber).."]/Proximity_sensor"), drones[i]) == 1 then
-                detected[i] = i
+            if sim.checkProximitySensor(sim.getObject("/target["..tostring(detectingDroneNumber).."]/Proximity_sensor"), targets[i]) == 1 then
+                table.insert(detected, i)
             end
         end
     end

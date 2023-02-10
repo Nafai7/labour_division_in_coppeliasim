@@ -1,8 +1,8 @@
 class LabourDivisionAlgorithm:
-    def __init__(self, numberOfLaborers, numberOfTasks, levelsOfTaskImportance, evaporationFactor, taskEvaluationFunction):
+    def __init__(self, numberOfLaborers, numberOfTasks, workloadLevels, evaporationFactor, taskEvaluationFunction):
         self.numberOfLaborers = numberOfLaborers
         self.numberOfTasks = numberOfTasks
-        self.levelsOfTaskImportance = levelsOfTaskImportance
+        self.workloadLevels = workloadLevels
         self.evaporationFactor = evaporationFactor
         self.taskEvaluationFunction = taskEvaluationFunction
 
@@ -14,11 +14,11 @@ class Laborer:
     def assignTask(self, taskNumber):
         self.taskAssigned = taskNumber
 
-    def didTask(self, levelsOfTaskImportance, taskEvaluationFunction):
+    def didTask(self, workloadLevels, taskEvaluationFunction):
         evaluation = taskEvaluationFunction(self.taskAssigned)
 
-        if 0 <= evaluation <= levelsOfTaskImportance:
-            self.pheromones[self.taskAssigned] += (1.0 / levelsOfTaskImportance) * evaluation
+        if 0 <= evaluation <= workloadLevels:
+            self.pheromones[self.taskAssigned] += (1.0 / workloadLevels) * evaluation
             if self.pheromones[self.taskAssigned] > 1:
                 self.pheromones[self.taskAssigned] = 1
         else:
