@@ -5,6 +5,7 @@ import pathlib
 from zmqRemoteApi import RemoteAPIClient
 
 import LabourDivisionAlgorithm as LDA
+import workload
 
 # GLOBAL VARIABLES:
 # client, sim, addOnScript - client handle, simulation handle, add on script handle
@@ -23,7 +24,7 @@ def connect():
         print("Failed to connect to add on script")
 
 def getSimTimeToLog():
-    return "[" + str(datetime.timedelta(seconds=round(sim.getSimulationTime(),2))) + "["
+    return "[" + str(datetime.timedelta(seconds=round(sim.getSimulationTime(),2))) + "]:"
 
 def changePath(droneNumber, pathNumber):
     global addOnScript
@@ -44,42 +45,34 @@ def getConfig():
     global addOnScript
     return sim.callScriptFunction("getConfig", addOnScript)
 
-def main(timeLength):
-    global client, sim
-
+def setUP():
+    global client, config
     p = pathlib.Path("Logs/")
     p.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(filename=p.absolute().as_posix() + "\Simulation_logs_" + str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")) + ".txt", filemode='a',format='%(message)s', level=logging.DEBUG)
-
+    
     connect()
     client.setStepping(True)
+
     config = getConfig()
 
+def main(timeLength, workload: workload.Workload, evaporationFactor):
+    global client, sim, config
+    
     sim.startSimulation()
+    logging.info(getSimTimeToLog() + "############################Simulation started############################")
+    
     client.step()
-    changePath(0,0)
+    lda = LDA.LabourDivisionAlgorithmEnviroment(config["numberOfDrones"], config["numberOfPaths"], workload.workloadLevels, evaporationFactor, changePath, True, client.step, 20)
     while (t := sim.getSimulationTime()) < timeLength:
         client.step()
-        for i in range(0, config["numberOfDrones"]):
-            checkDetection(i)
-        if (t == 1.0):
-            changePath(1,1)
-        if (t == 2.0):
-            changePath(3,2)
-        if (t == 3.0):
-            changePath(5,3)
-        if (t == 4.0):
-            changePath(2,1)
-        if (t == 5.0):
-            changePath(4,2)
-        if (t == 6.0):
-            changePath(6,3)
-        if (t == 30.0):
-            changePath(2,2)
-            changePath(1,3)
+        workload.increaseWorkload()
+        lda.iterate(checkDetection, checkIfDidFullPath, workload.checkTaskEvaluation)
 
+    logging.info(getSimTimeToLog() + "############################Simulation ended############################")
     sim.stopSimulation()
 
     del client
 
-main(60)
+setUP()
+main(60, workload.Workload(config["numberOfPaths"], 10, 100, [1,2,4,1]), 0.2)
