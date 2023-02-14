@@ -34,12 +34,16 @@ def changePath(droneNumber, pathNumber):
 def checkDetection(detectingDroneNumber):
     global addOnScript
     result = sim.callScriptFunction("checkDetection", addOnScript, detectingDroneNumber)
-    logging.info(getSimTimeToLog() + "Drone " + str(detectingDroneNumber) + " was detected by drones: " + str(result))
+    if len(result) > 0:
+        logging.info(getSimTimeToLog() + "Drone " + str(detectingDroneNumber) + " was detected by drones: " + str(result))
     return result
 
-def checkIfDidFullPath(droneNumber):
+def checkIfDidFullPath(droneNumber, taskNumber):
     global addOnScript
-    return sim.callScriptFunction("checkIfDidFullPath", addOnScript, droneNumber)
+    result = sim.callScriptFunction("checkIfDidFullPath", addOnScript, droneNumber)
+    if result:
+        workloadManager.decreaseWorkload(taskNumber)
+    return result
 
 def getConfig():
     global addOnScript
@@ -63,11 +67,12 @@ def main(timeLength, workload: workload.Workload, evaporationFactor):
     logging.info(getSimTimeToLog() + "############################Simulation started############################")
     
     client.step()
-    lda = LDA.LabourDivisionAlgorithmEnviroment(config["numberOfDrones"], config["numberOfPaths"], workload.workloadLevels, evaporationFactor, changePath, True, client.step, 20)
+    lda = LDA.LabourDivisionAlgorithmEnviroment(config["numberOfDrones"], config["numberOfPaths"], workload.workloadLevels, evaporationFactor, changePath, True, client.step, 20, getSimTimeToLog)
     while (t := sim.getSimulationTime()) < timeLength:
         client.step()
         workload.increaseWorkload()
         lda.iterate(checkDetection, checkIfDidFullPath, workload.checkTaskEvaluation)
+        logging.info(getSimTimeToLog() + "Workloads - " + str(workload.tasksWorkloads))
 
     logging.info(getSimTimeToLog() + "############################Simulation ended############################")
     sim.stopSimulation()
@@ -75,4 +80,5 @@ def main(timeLength, workload: workload.Workload, evaporationFactor):
     del client
 
 setUP()
-main(60, workload.Workload(config["numberOfPaths"], 10, 100, [1,2,4,1]), 0.2)
+workloadManager = workload.Workload(config["numberOfPaths"], 10, 100)
+main(60, workloadManager, 0.01)

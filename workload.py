@@ -1,16 +1,17 @@
 class Workload:
-    def __init__(self, numberOfTasks, workloadLevels, levelSize, workloadIncrementArray):
-        if len(workloadIncrementArray) != numberOfTasks:
-            raise RuntimeError("Workload incrementation array has to be have length equal to number of tasks")
+    def __init__(self, numberOfTasks, workloadLevels, levelSize):
         self.numberOfTasks = numberOfTasks
         self.workloadLevels = workloadLevels
         self.levelSize = levelSize
-        self.workloadIncrementArray = workloadIncrementArray
 
         self.tasksWorkloads = [0 for _ in range(numberOfTasks)]
 
     def increaseWorkload(self):
-        self.tasksWorkloads += self.workloadIncrementArray
+        for i in range(len(self.tasksWorkloads)):
+            self.tasksWorkloads[i] += 1
+    
+    def decreaseWorkload(self, taskNumber):
+        self.tasksWorkloads[taskNumber] -= 5
     
     def checkTaskEvaluation(self, taskNumber):
         taskWorkload = self.tasksWorkloads[taskNumber]
