@@ -39,7 +39,7 @@ class LabourDivisionAlgorithmEnviroment:
             detectedLaborers = checkDetectionFunction(laborer.id)
             listOfPheromones = []
             for i in detectedLaborers:
-                listOfPheromones.append({ "taskNumber": self.laborers[i].taskAssigned, "pheromones": self.laborers[i].pheromones})
+                listOfPheromones.append({"laborerID": self.laborers[i].id, "taskNumber": self.laborers[i].taskAssigned, "pheromones": self.laborers[i].pheromones})
             laborer.iterate(checkTaskCompletionFunction(laborer.id, laborer.taskAssigned), self.workloadLevels, taskEvaluationFunction, self.taskChangeFunction, listOfPheromones, self.evaporationFactor)
 
 class Laborer:
@@ -47,6 +47,8 @@ class Laborer:
         self.id = id
         self.pheromones = [0 for _ in range(numberOfTasks)]
         self.newPheromones = [0 for _ in range(numberOfTasks)]
+        self.receivedFromLaborers = []
+        self.receivedFromTasks = []
         self.taskAssigned = None
         self.debugTime = debugTime
 
@@ -56,27 +58,40 @@ class Laborer:
         self.pheromones[taskNumber] += 0.5
 
     def didTask(self, workloadLevels, taskEvaluationFunction):
-        logging.info(self.debugTime() + ": Drone " + str(self.id) + " did task")
+        logging.info(self.debugTime() + ": Drone " + str(self.id) + " did task " + str(self.taskAssigned))
         logging.info(self.pheromones)
         evaluation = taskEvaluationFunction(self.taskAssigned)
 
         if 0 <= evaluation <= workloadLevels:
-            self.pheromones[self.taskAssigned] += (1.0 / workloadLevels) * evaluation
+            self.pheromones[self.taskAssigned] += round((1.0 / workloadLevels) * evaluation, 6)
             if self.pheromones[self.taskAssigned] > 1:
                 self.pheromones[self.taskAssigned] = 1
         else:
             raise RuntimeError("Task evaluation function returns number not in bounds of levels of task imporance")
+        self.receivedFromLaborers.clear()
+        self.receivedFromTasks.clear()
         logging.info(self.pheromones)
 
     def evaporatePheromones(self, evaporationFactor):
         self.pheromones = [round(x - (x * evaporationFactor), 6) for x in self.pheromones]
     
     def receivePheromones(self, receivedPheromones):
-        if self.taskAssigned != receivedPheromones["taskNumber"]:
+        if self.taskAssigned != receivedPheromones["taskNumber"] and receivedPheromones["laborerID"] not in self.receivedFromLaborers:
             logging.info(self.pheromones)
             logging.info(receivedPheromones)
+            self.receivedFromLaborers.append(receivedPheromones["laborerID"])
+
+            alreadyReceivedFromTask = False
+            if receivedPheromones["taskNumber"] in self.receivedFromTasks:
+                alreadyReceivedFromTask = True
+                pheromoneMultiplier = 0.5 * self.receivedFromTasks.count(receivedPheromones["taskNumber"])
+            self.receivedFromTasks.append(receivedPheromones["taskNumber"])
+            
             for i in range(len(self.pheromones)):
-                self.newPheromones[i] = self.pheromones[i] + receivedPheromones["pheromones"][i]
+                if not alreadyReceivedFromTask:
+                    self.newPheromones[i] = self.pheromones[i] + receivedPheromones["pheromones"][i]
+                else:
+                    self.newPheromones[i] = self.pheromones[i] + (receivedPheromones["pheromones"][i] * pheromoneMultiplier)
                 if self.newPheromones[i] > 1:
                     self.newPheromones[i] = 1
             logging.info(self.newPheromones)
@@ -102,7 +117,7 @@ class Laborer:
         self.pheromones[randomTask] += 0.1
 
     def changeToNewPheromones(self):
-        if len(self.newPheromones) > 0:
+        if sum(self.newPheromones) > 0:
             for i in range(len(self.pheromones)):
                 self.pheromones[i] = self.newPheromones[i]
             self.newPheromones = [0 for _ in range(len(self.pheromones))]

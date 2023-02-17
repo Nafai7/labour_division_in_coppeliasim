@@ -50,15 +50,24 @@ def getConfig():
     return sim.callScriptFunction("getConfig", addOnScript)
 
 def setUP():
-    global client, config
+    global client, config, workloadManager, timeLength, evaporationFactor
     p = pathlib.Path("Logs/")
     p.mkdir(parents=True, exist_ok=True)
     logging.basicConfig(filename=p.absolute().as_posix() + "\Simulation_logs_" + str(datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")) + ".txt", filemode='a',format='%(message)s', level=logging.DEBUG)
     
     connect()
     client.setStepping(True)
-
     config = getConfig()
+
+    timeLength = 300
+    evaporationFactor = 0.005
+    workloadLevels = 50
+    levelSize = 50
+    increment = 1
+    decrement = 75
+    workloadManager = workload.Workload(config["numberOfPaths"], workloadLevels, levelSize, increment, decrement)
+
+    logging.info("Simulation parameters: \nTime length - " + str(timeLength) + "s \nEvaporation factor - " + str(evaporationFactor) + "\nWorkload levels - " + str(workloadLevels) + "\nLevel size - " + str(levelSize) + "\nIncrement - " + str(increment) + "\nDecrement - " + str(decrement))
 
 def main(timeLength, workload: workload.Workload, evaporationFactor):
     global client, sim, config
@@ -80,5 +89,4 @@ def main(timeLength, workload: workload.Workload, evaporationFactor):
     del client
 
 setUP()
-workloadManager = workload.Workload(config["numberOfPaths"], 10, 100)
-main(60, workloadManager, 0.01)
+main(timeLength, workloadManager, evaporationFactor)

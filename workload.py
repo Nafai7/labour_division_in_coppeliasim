@@ -1,17 +1,19 @@
 class Workload:
-    def __init__(self, numberOfTasks, workloadLevels, levelSize):
+    def __init__(self, numberOfTasks, workloadLevels, levelSize, increment, decrement):
         self.numberOfTasks = numberOfTasks
         self.workloadLevels = workloadLevels
         self.levelSize = levelSize
+        self.increment = increment
+        self.decrement = decrement
 
         self.tasksWorkloads = [0 for _ in range(numberOfTasks)]
 
     def increaseWorkload(self):
         for i in range(len(self.tasksWorkloads)):
-            self.tasksWorkloads[i] += 1
+            self.tasksWorkloads[i] += self.increment
     
     def decreaseWorkload(self, taskNumber):
-        self.tasksWorkloads[taskNumber] -= 5
+        self.tasksWorkloads[taskNumber] -= self.decrement
     
     def checkTaskEvaluation(self, taskNumber):
         taskWorkload = self.tasksWorkloads[taskNumber]
